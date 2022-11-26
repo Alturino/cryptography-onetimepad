@@ -4,33 +4,33 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
 @Composable
 @Preview
-fun App() {
-
-
+fun App(viewModel: MainViewModel) {
     MaterialTheme {
-
+        val encryptedText by viewModel.encryptedText.collectAsState()
+        val decryptedText by viewModel.decryptedText.collectAsState()
         Column {
             Row {
-                var textToEncrypt by remember { mutableStateOf("Input text to encrypt here") }
                 OutlinedTextField(
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.padding(16.dp),
-                    value = textToEncrypt,
-                    onValueChange = { textToEncrypt = it },
+                    value = viewModel.textToEncrypt,
+                    onValueChange = { viewModel.encryptText(it) },
                     label = { Text("Text to encrypt") },
                     placeholder = { Text("Text To Encrypt") },
                     shape = RoundedCornerShape(4.dp),
@@ -41,24 +41,50 @@ fun App() {
                         modifier = Modifier.padding(16.dp),
                         text = "Encrypted Text"
                     )
-                    Text(
-                        modifier = Modifier.padding(start = 16.dp),
-                        text = textToEncrypt
-                    )
+                    SelectionContainer {
+                        Text(
+                            modifier = Modifier.padding(start = 16.dp),
+                            text = encryptedText
+                        )
+                    }
                 }
 
             }
 
-            var cipherText by remember { mutableStateOf("Input ciphertext in here") }
             Row {
-                OutlinedTextField(
-                    modifier = Modifier.padding(16.dp),
-                    value = cipherText,
-                    onValueChange = { cipherText = it },
-                    label = { Text("Ciphertext to decrypt") },
-                    placeholder = { Text("Ciphertext to decrypt") },
-                    shape = RoundedCornerShape(4.dp),
-                )
+                Column {
+                    OutlinedTextField(
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        modifier = Modifier.padding(16.dp),
+                        value = viewModel.cipherText,
+                        onValueChange = { viewModel.renewCipherText(it) },
+                        label = { Text("Ciphertext to decrypt") },
+                        placeholder = { Text("Ciphertext to decrypt") },
+                        shape = RoundedCornerShape(4.dp),
+                    )
+
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = "Cipher Key"
+                    )
+
+                    SelectionContainer {
+                        Text(
+                            modifier = Modifier.padding(start = 16.dp),
+                            text = viewModel.textToEncrypt
+                        )
+                    }
+
+                    OutlinedTextField(
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        modifier = Modifier.padding(16.dp),
+                        value = viewModel.textToEncrypt,
+                        onValueChange = { viewModel.encryptText(it) },
+                        label = { Text("Cipherkey") },
+                        placeholder = { Text("Cipherkey") },
+                        shape = RoundedCornerShape(4.dp),
+                    )
+                }
 
                 Column {
                     Text(
@@ -67,7 +93,7 @@ fun App() {
                     )
                     Text(
                         modifier = Modifier.padding(start = 16.dp),
-                        text = cipherText
+                        text = decryptedText
                     )
                 }
             }
@@ -77,6 +103,7 @@ fun App() {
 
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-        App()
+        val cryptography: Cryptography = OneTimePad()
+        App(viewModel = MainViewModel(cryptography))
     }
 }
