@@ -50,6 +50,4 @@ class OneTimePad : Cryptography {
 
         emit(plainText)
     }
-
-
 }
